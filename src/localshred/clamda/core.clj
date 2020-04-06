@@ -9,10 +9,27 @@
   (:require
    [localshred.clamda.lib :as lib]))
 
+(def __
+  "Placeholder to use in curried fns to save argument application for later.
+
+    (defcurry myvec [x y z] [x y z])
+    ((myvec __ 2 __) 1 3)   ; => [1 2 3]
+    (((myvec __ 2 __) 1) 3) ; => [1 2 3]
+    (((myvec __ __ __) 1) 2 3) ; => [1 2 3]"
+  lib/placeholder)
+
 (defn curry-n
   "Curry up to `n` arguments, afterwards invoking `f` with any other
   available args. Allows passing one or more args on any call. `f` will only
-  be invoked after `n` total args are provided.
+  be invoked after `n` total args are provided. Supports currying variadic
+  functions as long as `n` doesn't include the variadic argument, which means
+  we won't curry any arguments past `n`, but will pass any args beyond `n` via
+  `apply`.
+
+  Using `localshred.clamda.core/__` as a placeholder, args can be interleaved
+  wherever you wish and curry will continue to provide a callable function until
+  all args are provided. See `lib/combine-curried-args` for more info on the
+  order args are applied when one or more placeholder values are used.
 
     (defn adder [x y z] (+ x y z))
     (def curried-adder (curry #'adder))
@@ -25,11 +42,11 @@
   ([arity f]
    (curry-n arity [] f))
   ([arity received f]
-   (if (= arity (count received))
+   (if (= arity (lib/count-args received))
      (apply f received)
      (fn [& args]
-       (let [combined  (concat received args)
-             remaining (- arity (count combined))]
+       (let [combined  (lib/combine-curried-args received args)
+             remaining (- arity (lib/count-args combined))]
          (if (>= 0 remaining)
            (apply f combined)
            (curry-n arity combined f)))))))
@@ -37,7 +54,8 @@
 (defn curry
   "Curries the given `fn` based on the arity count. Currently only takes the
   first item in :arglists for the count. Variadic anonymous functions also
-  report an arity of 0, you probably want to use `curry-n` instead."
+  report an arity of 0, but will work as expected if you use `curry-n` with
+  the number of positional args (ignoring the variadic arg)."
   [f]
   (curry-n (lib/count-arity f) f))
 

@@ -21,15 +21,38 @@
     (t/is (= false (foo-and-bar {})))))
 
 (t/deftest curry-n
-  (let [add-variadic-curried (core/curry-n 3 #'add-variadic)]
+  (let [add-variadic-curried (core/curry-n 3 #'add-variadic)
+        add-curried (core/curry-n 2 #'add)]
     (t/is (= 6 (add-variadic-curried 1 2 3)))
     (t/is (= 6 ((add-variadic-curried 1) 2 3)))
     (t/is (= 6 ((add-variadic-curried 1 2) 3)))
     (t/is (= 6 (((add-variadic-curried 1) 2) 3)))
     (t/is (= 55 (((add-variadic-curried 1) 2) 3 4 5 6 7 8 9 10)))
+    (t/is (fn? (add-variadic-curried)))
     (t/is (fn? (add-variadic-curried 1)))
     (t/is (fn? (add-variadic-curried 1 2)))
-    (t/is (fn? ((add-variadic-curried 1) 2)))))
+    (t/is (fn? ((add-variadic-curried 1) 2)))
+    (t/is (thrown-with-msg?
+           Exception
+           #"Wrong number of args \(10\)"
+           ((add-curried 1) 2 3 4 5 6 7 8 9 10)))))
+
+(def nums (core/curry-n 6 (fn [a b c d e f] [a b c d e f])))
+(t/deftest curry-n-with-placeholder
+  (let [__ core/__
+        nums (core/curry-n 6 (fn [a b c d e f] [a b c d e f]))]
+    (t/is (= [1 2 3 4 5 6] (nums 1 2 3 4 5 6)))
+    (t/is (fn? (nums 1 __ 2 3 4 5)))
+    (t/is (= [1 5 2 3 6 4] (((nums 1 __ 2 3 __ 4) 5) 6)))
+    (t/is (= [1 2 3 4 5 6] ((nums __ __ __ __ __ __) 1 2 3 4 5 6)))
+    (t/is (thrown-with-msg?
+           Exception
+           #"Wrong number of args \(10\)"
+           (((nums 1 __ 2 3 __ 4) 5) 6 7 8 9 10)))
+    (t/is (thrown-with-msg?
+           Exception
+           #"Wrong number of args \(8\)"
+           ((nums __ __ __ __ __ __ __ __) 1 2 3 4 5 6)))))
 
 (t/deftest default-to
   (t/is (= 123 (core/default-to 'default 123)))
@@ -187,7 +210,7 @@
     (t/is (= 123 (:data (ex-data err))))
     (t/is (= 123 data))))
 
-(t/deftest when
+(t/deftest test-when
   (let [tester (partial core/when pos? (partial add 2))]
     (t/is (= 7 (tester 5)))
     (t/is (= -5 (tester -5)))
