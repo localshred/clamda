@@ -1,0 +1,3 @@
+{:deps
+ {notalwaysgray/fm {:git/url "https://github.com/notalwaysgray/fm"
+                    :sha "c06e9152a510ab205043f43345e9d5bf6ef5a212"}}}

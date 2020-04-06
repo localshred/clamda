@@ -1,0 +1,1 @@
+{:lint-as {localshred.clamda.core/defcurry clojure.core/defn}}
