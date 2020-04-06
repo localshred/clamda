@@ -317,6 +317,27 @@
   [test then data]
   (if-else test then identity data))
 
+(def apply-spec)
+
+(defn- -apply-spec-mapper
+  ""
+  [args [key setter]]
+  (if (map? setter)
+    [key (clojure.core/apply apply-spec setter args)]
+    [key (clojure.core/apply setter args)]))
+
+(def apply-spec
+  "Construct an object from the given specification, passing the variadic args
+  into each val fn, storing the result in the given key. Supports map recursion."
+  (curry-n
+   2
+   (fn apply-spec
+     [spec & args]
+     (->>
+      spec
+      (map (partial -apply-spec-mapper args))
+      (into {})))))
+
 (def evolve)
 
 (defn- -evolve-reducer

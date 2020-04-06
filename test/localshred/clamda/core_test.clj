@@ -77,6 +77,23 @@
     (t/is (= false (foo-or-bar {})))
     (t/is (= false (foo-or-bar {:not-foo 123 :not-bar 456})))))
 
+(t/deftest apply-spec
+  (t/is (= {:id 5
+            :squared 25
+            :half (/ 5 2)
+            :exponent 3125.0}
+           (core/apply-spec
+            {:id identity
+             :squared (core/multiply 5)
+             :half (core/divide core/__ 2)
+             :exponent (fn [x] (Math/pow x 5)) }
+            5)))
+  (t/is (= {:sum 6
+            :nested {:mul 8}}
+           (core/apply-spec
+            {:sum + :nested {:mul *}}
+            2 4))))
+
 (t/deftest evolve
   (t/is (= {:foo 123}
            (core/evolve
