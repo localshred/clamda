@@ -159,6 +159,12 @@
   [numerator denominator]
   (/ numerator denominator))
 
+(defn flip
+  "Flips the first two arguments of calls to `f`."
+  [f]
+  (fn [x y & args]
+    (clojure.core/apply f y x args)))
+
 (defcurry either?
   "Data-last, curried `clojure.core/or`. `left` and `right` are unary functions
   accepting the final data argument."
@@ -346,8 +352,8 @@
   (if-not (contains? data key)
     acc
     (if (map? (key data))
-     (update-in [:data key] (evolve (key spec)) acc)
-     (update-in [:data key] updater acc))))
+      (update-in [:data key] (evolve (key spec)) acc)
+      (update-in [:data key] updater acc))))
 
 (defcurry evolve
   "Reduce data against a specification of functions to apply to the given keys."

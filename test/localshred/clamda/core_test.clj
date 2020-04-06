@@ -19,6 +19,23 @@
   (t/is (false? (core/all-pass? [nil? :foo :bar] {:foo 123 :bar 456})))
   (t/is (false? (core/all-pass? [some? :foo :bar] {:bar 456}))))
 
+(t/deftest apply-spec
+  (t/is (= {:id 5
+            :squared 25
+            :half (/ 5 2)
+            :exponent 3125.0}
+           (core/apply-spec
+            {:id identity
+             :squared (core/multiply 5)
+             :half (core/divide core/__ 2)
+             :exponent (fn [x] (Math/pow x 5)) }
+            5)))
+  (t/is (= {:sum 6
+            :nested {:mul 8}}
+           (core/apply-spec
+            {:sum + :nested {:mul *}}
+            2 4))))
+
 (t/deftest both?
   (let [foo-and-bar (core/both? :foo :bar)]
     (t/is (= true (foo-and-bar {:foo 123 :bar 456})))
@@ -77,23 +94,6 @@
     (t/is (= false (foo-or-bar {})))
     (t/is (= false (foo-or-bar {:not-foo 123 :not-bar 456})))))
 
-(t/deftest apply-spec
-  (t/is (= {:id 5
-            :squared 25
-            :half (/ 5 2)
-            :exponent 3125.0}
-           (core/apply-spec
-            {:id identity
-             :squared (core/multiply 5)
-             :half (core/divide core/__ 2)
-             :exponent (fn [x] (Math/pow x 5)) }
-            5)))
-  (t/is (= {:sum 6
-            :nested {:mul 8}}
-           (core/apply-spec
-            {:sum + :nested {:mul *}}
-            2 4))))
-
 (t/deftest evolve
   (t/is (= {:foo 123}
            (core/evolve
@@ -114,6 +114,10 @@
           {:id         123
            :first-name "  Tomato "
            :data       {:elapsed 100 :remaining 1400}}))))
+
+(t/deftest flip
+  (t/is (= 3 ((core/flip -) 2 5)))
+  (t/is (= [2 1 3] ((core/flip vector) 1 2 3))))
 
 (t/deftest if-else
   (let [tester (core/if-else pos? (partial add 2) (partial mul -1))]
