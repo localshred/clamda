@@ -26,7 +26,7 @@
   "Set predicate for placeholder value."
   (set [placeholder]))
 
-(defn- combine-curried-args-reducer
+(defn- -combine-curried-args-reducer
   "Reducer which combines a set of \"received\" arguments and \"incoming\" args
   by building up the combined set from `received`, and replacing with top of
   `args` each time a placeholder value is encountered in `received`.
@@ -54,7 +54,7 @@
       (->>
        received
        (reduce
-        combine-curried-args-reducer
+        -combine-curried-args-reducer
         {:received   []
          :args       args})
        ((fn [acc] (select-keys acc [:received :args])))

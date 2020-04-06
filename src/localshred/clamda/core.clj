@@ -5,7 +5,7 @@
   Most of clojure's core functions operate data-last, this library covers for
   the sad remainder."
   (:refer-clojure
-   :exclude [assoc assoc-in update update-in when])
+   :exclude [< > <= >= apply assoc assoc-in update update-in when])
   (:require
    [localshred.clamda.lib :as lib]))
 
@@ -43,12 +43,12 @@
    (curry-n arity [] f))
   ([arity received f]
    (if (= arity (lib/count-args received))
-     (apply f received)
+     (clojure.core/apply f received)
      (fn [& args]
        (let [combined  (lib/combine-curried-args received args)
              remaining (- arity (lib/count-args combined))]
-         (if (>= 0 remaining)
-           (apply f combined)
+         (if (clojure.core/>= 0 remaining)
+           (clojure.core/apply f combined)
            (curry-n arity combined f)))))))
 
 (defn curry
@@ -69,6 +69,48 @@
     `(defn ~name ~doc ~args ~@body)
     `(def ~name ~doc (curry (fn ~name ~args ~@body)))))
 
+(defcurry <
+  "Curried, binary version of `clojure.core/<`."
+  [x y]
+  (clojure.core/< x y))
+
+(defcurry <=
+  "Curried, binary version of `clojure.core/<=`."
+  [x y]
+  (clojure.core/<= x y))
+
+(defcurry >
+  "Curried, binary version of `clojure.core/>`."
+  [x y]
+  (clojure.core/> x y))
+
+(defcurry >=
+  "Curried, binary version of `clojure.core/>=`."
+  [x y]
+  (clojure.core/>= x y))
+
+(defcurry add
+  "Add two numbers together. Curried, binary version of `clojure.core/+`."
+  [x y]
+  (clojure.core/+ x y))
+
+(defcurry all-pass?
+  "Passes the data into each provided predicate in `preds`, returning true if
+  all predicates pass."
+  [preds data]
+  (every? (fn [pred] (pred data)) preds))
+
+(defcurry any-pass?
+  "Passes the data into each provided predicate in `preds`, returning true if
+  at least one of the predicates pass."
+  [preds data]
+  (some (fn [pred] (pred data)) preds))
+
+(defcurry apply
+  "Data-last, curried `clojure.core/apply`."
+  [f data]
+  (clojure.core/apply f data))
+
 (defcurry assoc
   "Data-last, curried `clojure.core/assoc`. Only supports one key-value pair.
   See `assoc&` for variadic cross-over support.
@@ -81,7 +123,7 @@
   by accepting a seq of key-value pairs as the first argument to be applied as
   rest args to `cojure.core/assoc`."
   [kvs data]
-  (apply clojure.core/assoc data kvs))
+  (clojure.core/apply clojure.core/assoc data kvs))
 
 (defcurry assoc-in
   "Data-last, curried `clojure.core/assoc-in`. Any additional args to be passed
@@ -94,9 +136,9 @@
   by accepting a seq of key-value pairs as the first argument to be applied as
   rest args to `cojure.core/assoc-in`."
   [kvs data]
-  (apply clojure.core/assoc-in data kvs))
+  (clojure.core/apply clojure.core/assoc-in data kvs))
 
-(defcurry both
+(defcurry both?
   "Data-last, curried `clojure.core/and`. `left` and `right` are unary functions
   accepting the final data argument."
   [left right data]
@@ -112,7 +154,12 @@
     data
     default))
 
-(defcurry either
+(defcurry divide
+  "Divide two numbers together. Curried, binary version of `clojure.core//`."
+  [numerator denominator]
+  (/ numerator denominator))
+
+(defcurry either?
   "Data-last, curried `clojure.core/or`. `left` and `right` are unary functions
   accepting the final data argument."
   [left right data]
@@ -136,6 +183,16 @@
   (if (test data)
     (then data)
     (else data)))
+
+(defcurry multiply
+  "Multiply two numbers together. Curried, binary version of `clojure.core/*`."
+  [x y]
+  (* x y))
+
+(defcurry none?
+  "Returns true if none of the elements in `data` pass the given predicate."
+  [pred data]
+  (every? (complement pred) data))
 
 (defcurry path
   "Data-last, curried `clojure.core/get-in` without default (see `path-or`)."
@@ -161,7 +218,7 @@
   [keys-keys data]
   (map (fn [keys] (path keys data)) keys-keys))
 
-(defcurry path-satisfies
+(defcurry path-satisfies?
   "Retrieves the value using `path` and runs it against the given predicate."
   [pred keys data]
   (->> data (path keys) (pred)))
@@ -200,7 +257,7 @@
   [default key data]
   (get data key default))
 
-(defcurry prop-satisfies
+(defcurry prop-satisfies?
   "Retrieves the value using `prop` and runs it against the given predicate."
   [pred key data]
   (->> data (prop key) (pred)))
@@ -210,16 +267,21 @@
   [keys data]
   (->> data (pick keys) (vals)))
 
+(defcurry subtract
+  "Subtract two numbers together. Curried, binary version of `clojure.core/-`."
+  [x y]
+  (- x y))
+
+(def t
+  "True constant."
+  (constantly true))
+
 (defcurry tap
   "Invokes the given function with data (presumably for side-effects) and
   returns data, discarding the result of the function, if any."
   [tapper data]
   (tapper data)
   data)
-
-(def t
-  "True constant."
-  (constantly true))
 
 (defn to-pairs
   "Get `[key value]` pairs from a map."
@@ -254,3 +316,22 @@
   the else clause as identity for the given `data`."
   [test then data]
   (if-else test then identity data))
+
+(def evolve)
+
+(defn- -evolve-reducer
+  "Reduce data against a specification of functions to apply to the given keys."
+  [{:keys [spec data] :as acc} [key updater]]
+  (if-not (contains? data key)
+    acc
+    (if (map? (key data))
+     (update-in [:data key] (evolve (key spec)) acc)
+     (update-in [:data key] updater acc))))
+
+(defcurry evolve
+  "Reduce data against a specification of functions to apply to the given keys."
+  [spec data]
+  (->>
+   (to-pairs spec)
+   (reduce -evolve-reducer {:spec spec :data data})
+   :data))

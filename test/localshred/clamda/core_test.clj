@@ -1,6 +1,8 @@
 (ns localshred.clamda.core-test
-  (:require [localshred.clamda.core :as core]
-            [clojure.test :as t]))
+  (:require
+   [clojure.test :as t]
+   [clojure.string :as string]
+   [localshred.clamda.core :as core]))
 
 (defn mul
   [x y] (* x y))
@@ -12,8 +14,13 @@
   [x y z & more]
   (apply + x y z more))
 
-(t/deftest both
-  (let [foo-and-bar (core/both :foo :bar)]
+(t/deftest all-pass?
+  (t/is (true? (core/all-pass? [some? :foo :bar] {:foo 123 :bar 456})))
+  (t/is (false? (core/all-pass? [nil? :foo :bar] {:foo 123 :bar 456})))
+  (t/is (false? (core/all-pass? [some? :foo :bar] {:bar 456}))))
+
+(t/deftest both?
+  (let [foo-and-bar (core/both? :foo :bar)]
     (t/is (= true (foo-and-bar {:foo 123 :bar 456})))
     (t/is (= false (foo-and-bar {:foo 123})))
     (t/is (= false (foo-and-bar {:bar 456})))
@@ -37,7 +44,6 @@
            #"Wrong number of args \(10\)"
            ((add-curried 1) 2 3 4 5 6 7 8 9 10)))))
 
-(def nums (core/curry-n 6 (fn [a b c d e f] [a b c d e f])))
 (t/deftest curry-n-with-placeholder
   (let [__ core/__
         nums (core/curry-n 6 (fn [a b c d e f] [a b c d e f]))]
@@ -64,17 +70,43 @@
   (t/is (= false (core/default-to 'default false)))
   (t/is (= 'default (core/default-to 'default nil))))
 
-(t/deftest either
-  (let [foo-or-bar (core/either :foo :bar)]
+(t/deftest either?
+  (let [foo-or-bar (core/either? :foo :bar)]
     (t/is (= true (foo-or-bar {:foo 123 :bar 456})))
     (t/is (= true (foo-or-bar {:bar 456})))
     (t/is (= false (foo-or-bar {})))
     (t/is (= false (foo-or-bar {:not-foo 123 :not-bar 456})))))
 
+(t/deftest evolve
+  (t/is (= {:foo 123}
+           (core/evolve
+            {:foo inc}
+            {:foo 122})))
+  (t/is (= {:foo {:bar 123}}
+           (core/evolve
+            {:foo {:bar inc}}
+            {:foo {:bar 122}})))
+  (t/is (=
+         {:id         123
+          :first-name "Tomato"
+          :data       {:elapsed 101 :remaining 1399}}
+         (core/evolve
+          {:first-name string/trim
+           :last-name  string/trim
+           :data       {:elapsed (core/add 1) :remaining (core/add -1)}}
+          {:id         123
+           :first-name "  Tomato "
+           :data       {:elapsed 100 :remaining 1400}}))))
+
 (t/deftest if-else
   (let [tester (core/if-else pos? (partial add 2) (partial mul -1))]
     (t/is (= 7 (tester 5)))
     (t/is (= 5 (tester -5)))))
+
+(t/deftest none?
+  (t/is (true? (core/none? pos? [-1 -2 -3])))
+  (t/is (true? (core/none? even? [1, 3, 5, 7, 9, 11])))
+  (t/is (false? (core/none? odd? [1, 3, 5, 7, 8, 11]))))
 
 (t/deftest path
   (t/is (= 123 (core/path [:foo :bar :baz] {:foo {:bar {:baz 123}}})))
@@ -123,15 +155,15 @@
   (t/is (= [nil nil] (core/paths [[:foo :bar] [:thing]] {})))
   (t/is (= [] (core/paths [] {}))))
 
-(t/deftest path-satisfies
-  (t/is (true? (core/path-satisfies pos? [:foo :bar] {:foo {:bar 123}})))
-  (t/is (true? (core/path-satisfies nil? [:foo :bar] {:foo {:bar nil}})))
-  (t/is (false? (core/path-satisfies pos? [:foo :bar] {:foo {:bar -123}})))
-  (t/is (false? (core/path-satisfies nil? [:foo :bar] {:foo {:bar "not pos"}})))
-  (t/is (false? (core/path-satisfies some? [:foo :bar] {:foo 123})))
-  (t/is (false? (core/path-satisfies some? [:foo :bar] {:foo -123})))
-  (t/is (false? (core/path-satisfies some? [:foo :bar] {:foo "not pos"})))
-  (t/is (false? (core/path-satisfies some? [:foo :bar] {:foo nil}))))
+(t/deftest path-satisfies?
+  (t/is (true? (core/path-satisfies? pos? [:foo :bar] {:foo {:bar 123}})))
+  (t/is (true? (core/path-satisfies? nil? [:foo :bar] {:foo {:bar nil}})))
+  (t/is (false? (core/path-satisfies? pos? [:foo :bar] {:foo {:bar -123}})))
+  (t/is (false? (core/path-satisfies? nil? [:foo :bar] {:foo {:bar "not pos"}})))
+  (t/is (false? (core/path-satisfies? some? [:foo :bar] {:foo 123})))
+  (t/is (false? (core/path-satisfies? some? [:foo :bar] {:foo -123})))
+  (t/is (false? (core/path-satisfies? some? [:foo :bar] {:foo "not pos"})))
+  (t/is (false? (core/path-satisfies? some? [:foo :bar] {:foo nil}))))
 
 (t/deftest pick
   (t/is (= {:foo 123 :bar 456} (core/pick [:foo :bar] {:foo 123
@@ -172,15 +204,15 @@
   (t/is (= 'default (core/prop-or 'default :foo "")))
   (t/is (= 'default (core/prop-or 'default :foo nil))))
 
-(t/deftest prop-satisfies
-  (t/is (true? (core/prop-satisfies pos? :foo {:foo 123})))
-  (t/is (true? (core/prop-satisfies nil? :foo {:foo nil})))
-  (t/is (false? (core/prop-satisfies pos? :foo {:foo -123})))
-  (t/is (false? (core/prop-satisfies nil? :foo {:foo "not pos"})))
-  (t/is (false? (core/prop-satisfies some? :foo {:bar 123})))
-  (t/is (false? (core/prop-satisfies some? :foo {:bar -123})))
-  (t/is (false? (core/prop-satisfies some? :foo {:bar "not pos"})))
-  (t/is (false? (core/prop-satisfies some? :foo {:bar nil}))))
+(t/deftest prop-satisfies?
+  (t/is (true? (core/prop-satisfies? pos? :foo {:foo 123})))
+  (t/is (true? (core/prop-satisfies? nil? :foo {:foo nil})))
+  (t/is (false? (core/prop-satisfies? pos? :foo {:foo -123})))
+  (t/is (false? (core/prop-satisfies? nil? :foo {:foo "not pos"})))
+  (t/is (false? (core/prop-satisfies? some? :foo {:bar 123})))
+  (t/is (false? (core/prop-satisfies? some? :foo {:bar -123})))
+  (t/is (false? (core/prop-satisfies? some? :foo {:bar "not pos"})))
+  (t/is (false? (core/prop-satisfies? some? :foo {:bar nil}))))
 
 (t/deftest tap
   (let [tap-value (atom nil)
