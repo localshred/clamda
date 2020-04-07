@@ -5,9 +5,11 @@
   Most of clojure's core functions operate data-last, this library covers for
   the sad remainder."
   (:refer-clojure
-   :exclude [< > <= >= apply assoc assoc-in update update-in when])
+   :exclude [< > <= >= apply assoc assoc-in mod update update-in when])
   (:require
    [localshred.clamda.lib :as lib]))
+
+(declare __ apply-spec evolve prop update-in to-pairs)
 
 (def __
   "Placeholder to use in curried fns to save argument application for later.
@@ -60,7 +62,6 @@
   ^{:arglists '([f])}
   [f]
   (curry-n (lib/count-arity f) f))
-(->> (meta #'map) :arglists first first type)
 
 ;; Heavily simplified from https://gist.github.com/sunilnandihalli/745654
 (defmacro defcurry
@@ -79,7 +80,7 @@
        ~@body)
     `(def
        ~(with-meta name
-          (macroexpand `{:doc ~doc :arglists '~(vector args)}))
+          (macroexpand `{:doc ~doc :arglists '~(list args)}))
        (curry (fn ~name ~args ~@body)))))
 
 (defcurry <
@@ -123,6 +124,30 @@
   "Data-last, curried `clojure.core/apply`."
   [f data]
   (clojure.core/apply f data))
+
+(defn- -apply-spec-mapper
+  "Mapping function for iterative use with `apply-spec`'s map."
+  ^{:private true
+    :arglists '([args [key setter]])}
+  [args [key setter]]
+  (if (map? setter)
+    [key (clojure.core/apply apply-spec setter args)]
+    [key (clojure.core/apply setter args)]))
+
+(def
+  ^{:arglists '([spec & args])}
+  apply-spec
+  "Construct a map from the given `spec`, passing rest args into each value
+  fn provided by the `spec`, storing the result in the given key. Supports
+  map recursion."
+  (curry-n
+   2
+   (fn apply-spec
+     [spec & args]
+     (->>
+      spec
+      (map (partial -apply-spec-mapper args))
+      (into {})))))
 
 (defcurry assoc
   "Data-last, curried `clojure.core/assoc`. Only supports one key-value pair.
@@ -187,6 +212,35 @@
    (some? (left data))
    (some? (right data))))
 
+(defn- -evolve-reducer
+  "Reduce data against a specification of functions to apply to the given keys.
+  Utilized by `evolve`."
+  ^{:private true
+    :arglists '([{spec :spec data :data} [key updater]])}
+  [{:keys [spec data] :as acc} [key updater]]
+  (if-not (contains? data key)
+    acc
+    (if (map? (key data))
+      (update-in [:data key] (evolve (key spec)) acc)
+      (update-in [:data key] updater acc))))
+
+(defcurry evolve
+  "Evolve map values based on `spec` mapping where map values in `spec` are
+  functions that will receive the current value for that key in `data`, the
+  result the function will be updated at that key using `update-in`. Keys
+  present in `spec` that are not present in `data` will be ignored. Supports
+  nested updates of map values."
+  [spec data]
+  (->>
+   (to-pairs spec)
+   (reduce -evolve-reducer {:spec spec :data data})
+   :data))
+
+(defcurry exponent
+  "Curried Math/pow."
+  [base exp]
+  (Math/pow base exp))
+
 (def f
   "False thunk."
   (constantly false))
@@ -204,6 +258,11 @@
   (if (test data)
     (then data)
     (else data)))
+
+(defcurry mod
+  "Curried `clojure.core/mod`."
+  [num div]
+  (clojure.core/mod num div))
 
 (defcurry multiply
   "Multiply two numbers together. Curried, binary version of `clojure.core/*`."
@@ -234,20 +293,25 @@
   [default keys data]
   (get-in data keys default))
 
-(defcurry paths
-  "Fetches values from multiple paths through the given map. See `path`"
-  [keys-keys data]
-  (map (fn [keys] (path keys data)) keys-keys))
-
 (defcurry path-satisfies?
   "Retrieves the value using `path` and runs it against the given predicate."
   [pred keys data]
   (->> data (path keys) (pred)))
 
+(defcurry paths
+  "Fetches values from multiple paths through the given map. See `path`"
+  [keys-keys data]
+  (map (fn [keys] (path keys data)) keys-keys))
+
 (defcurry pick
   "Data-last, curried `clojure.core/select-keys`."
   [keys data]
   (select-keys data keys))
+
+(defcurry pluck
+  "Get the named prop value from each given map. See `prop`."
+  [key maps]
+  (map (prop key) maps))
 
 (defcurry project
   "`pick`s `keys` from each map in `maps`. Analogous to a SQL select statement."
@@ -258,11 +322,6 @@
   "Data-last, curried `clojure.core/get` without default (see `prop-or`)."
   [key data]
   (get data key))
-
-(defcurry pluck
-  "Get the named prop value from each given map. See `prop`."
-  [key maps]
-  (map (prop key) maps))
 
 (defcurry prop=
   "Data-last, curried `=` comparison of the prop in the given map.
@@ -338,55 +397,3 @@
   the else clause as identity for the given `data`."
   [test then data]
   (if-else test then identity data))
-
-(def apply-spec)
-
-(defn- -apply-spec-mapper
-  "Mapping function for iterative use with `apply-spec`'s map."
-  ^{:private true
-    :arglists '([args [key setter]])}
-  [args [key setter]]
-  (if (map? setter)
-    [key (clojure.core/apply apply-spec setter args)]
-    [key (clojure.core/apply setter args)]))
-
-(def
-  ^{:arglists '([spec & args])}
-  apply-spec
-  "Construct a map from the given `spec`, passing rest args into each value
-  fn provided by the `spec`, storing the result in the given key. Supports
-  map recursion."
-  (curry-n
-   2
-   (fn apply-spec
-     [spec & args]
-     (->>
-      spec
-      (map (partial -apply-spec-mapper args))
-      (into {})))))
-
-(def evolve)
-
-(defn- -evolve-reducer
-  "Reduce data against a specification of functions to apply to the given keys.
-  Utilized by `evolve`."
-  ^{:private true
-    :arglists '([{spec :spec data :data} [key updater]])}
-  [{:keys [spec data] :as acc} [key updater]]
-  (if-not (contains? data key)
-    acc
-    (if (map? (key data))
-      (update-in [:data key] (evolve (key spec)) acc)
-      (update-in [:data key] updater acc))))
-
-(defcurry evolve
-  "Evolve map values based on `spec` mapping where map values in `spec` are
-  functions that will receive the current value for that key in `data`, the
-  result the function will be updated at that key using `update-in`. Keys
-  present in `spec` that are not present in `data` will be ignored. Supports
-  nested updates of map values."
-  [spec data]
-  (->>
-   (to-pairs spec)
-   (reduce -evolve-reducer {:spec spec :data data})
-  :data))
