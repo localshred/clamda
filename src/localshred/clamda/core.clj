@@ -19,14 +19,14 @@
   lib/placeholder)
 
 (defn curry-n
-  "Curry up to `n` arguments, afterwards invoking `f` with any other
+  "Curry up to `arity` arguments, afterwards invoking `f` with any other
   available args. Allows passing one or more args on any call. `f` will only
-  be invoked after `n` total args are provided. Supports currying variadic
-  functions as long as `n` doesn't include the variadic argument, which means
-  we won't curry any arguments past `n`, but will pass any args beyond `n` via
-  `apply`.
+  be invoked after `arity` total args are provided. Supports currying variadic
+  functions as long as `arity` doesn't include the variadic argument, which
+  means we won't curry any arguments past `arity`, but will pass any args beyond
+  `arity` via `clojure.core/apply`.
 
-  Using `localshred.clamda.core/__` as a placeholder, args can be interleaved
+  Using `__` as a placeholder, args can be interleaved
   wherever you wish and curry will continue to provide a callable function until
   all args are provided. See `lib/combine-curried-args` for more info on the
   order args are applied when one or more placeholder values are used.
@@ -39,6 +39,7 @@
     ((curried-adder 1 2) 3)   ; 6
     ((curried-adder 1) 2 3)   ; 6
     (((curried-adder 1) 2) 3) ; 6"
+  ^{:arglists '([arity f] [arity received f])}
   ([arity f]
    (curry-n arity [] f))
   ([arity received f]
@@ -56,18 +57,30 @@
   first item in :arglists for the count. Variadic anonymous functions also
   report an arity of 0, but will work as expected if you use `curry-n` with
   the number of positional args (ignoring the variadic arg)."
+  ^{:arglists '([f])}
   [f]
   (curry-n (lib/count-arity f) f))
+(->> (meta #'map) :arglists first first type)
 
 ;; Heavily simplified from https://gist.github.com/sunilnandihalli/745654
 (defmacro defcurry
-  "Curry the given defn definition. Currently doesn't support meta nor
-  pre or post validators."
+  "Simplified `defn` which wraps the body forms in an fn and passes that
+  function to `curry`. Meta support is limited to requiring a `doc` string.
+  `:arglists` will automatically be applied to the var meta for improved docs."
+  ^{:arglists '([name doc args & body])}
   [name doc args & body]
   {:pre [(not-any? #{'&} args)]}
   (if (empty? args)
-    `(defn ~name ~doc ~args ~@body)
-    `(def ~name ~doc (curry (fn ~name ~args ~@body)))))
+    `(defn
+       ~(with-meta name
+          {:doc      doc
+           :arglists '([])})
+       ~args
+       ~@body)
+    `(def
+       ~(with-meta name
+          (macroexpand `{:doc ~doc :arglists '~(vector args)}))
+       (curry (fn ~name ~args ~@body)))))
 
 (defcurry <
   "Curried, binary version of `clojure.core/<`."
@@ -161,6 +174,7 @@
 
 (defn flip
   "Flips the first two arguments of calls to `f`."
+  ^{:arglists '([f])}
   [f]
   (fn [x y & args]
     (clojure.core/apply f y x args)))
@@ -174,11 +188,12 @@
    (some? (right data))))
 
 (def f
-  "False constant."
+  "False thunk."
   (constantly false))
 
 (defn from-pairs
-  "Turn `[key value]` pairs into a map."
+  "Turn a collection of `[key value]` pairs into a map."
+  ^{:arglists '([pairs])}
   [pairs]
   (into {} pairs))
 
@@ -206,7 +221,7 @@
   (get-in data keys))
 
 (defcurry path=
-  "Data-last, curried `=` comparison of the value at path in the given object.
+  "Data-last, curried `=` comparison of the value at path in the given map.
   See `path` and `clojure.core/=`."
   [keys x data]
   (->>
@@ -250,7 +265,7 @@
   (map (prop key) maps))
 
 (defcurry prop=
-  "Data-last, curried `=` comparison of the prop in the given object.
+  "Data-last, curried `=` comparison of the prop in the given map.
   See `prop` and `clojure.core/=`."
   [key x data]
   (->>
@@ -279,7 +294,7 @@
   (- x y))
 
 (def t
-  "True constant."
+  "True thunk."
   (constantly true))
 
 (defcurry tap
@@ -290,7 +305,8 @@
   data)
 
 (defn to-pairs
-  "Get `[key value]` pairs from a map."
+  "Get a collection of `[key value]` pairs from a map."
+  ^{:arglists '([data])}
   [data]
   (map identity data))
 
@@ -326,15 +342,20 @@
 (def apply-spec)
 
 (defn- -apply-spec-mapper
-  ""
+  "Mapping function for iterative use with `apply-spec`'s map."
+  ^{:private true
+    :arglists '([args [key setter]])}
   [args [key setter]]
   (if (map? setter)
     [key (clojure.core/apply apply-spec setter args)]
     [key (clojure.core/apply setter args)]))
 
-(def apply-spec
-  "Construct an object from the given specification, passing the variadic args
-  into each val fn, storing the result in the given key. Supports map recursion."
+(def
+  ^{:arglists '([spec & args])}
+  apply-spec
+  "Construct a map from the given `spec`, passing rest args into each value
+  fn provided by the `spec`, storing the result in the given key. Supports
+  map recursion."
   (curry-n
    2
    (fn apply-spec
@@ -347,7 +368,10 @@
 (def evolve)
 
 (defn- -evolve-reducer
-  "Reduce data against a specification of functions to apply to the given keys."
+  "Reduce data against a specification of functions to apply to the given keys.
+  Utilized by `evolve`."
+  ^{:private true
+    :arglists '([{spec :spec data :data} [key updater]])}
   [{:keys [spec data] :as acc} [key updater]]
   (if-not (contains? data key)
     acc
@@ -356,9 +380,13 @@
       (update-in [:data key] updater acc))))
 
 (defcurry evolve
-  "Reduce data against a specification of functions to apply to the given keys."
+  "Evolve map values based on `spec` mapping where map values in `spec` are
+  functions that will receive the current value for that key in `data`, the
+  result the function will be updated at that key using `update-in`. Keys
+  present in `spec` that are not present in `data` will be ignored. Supports
+  nested updates of map values."
   [spec data]
   (->>
    (to-pairs spec)
    (reduce -evolve-reducer {:spec spec :data data})
-   :data))
+  :data))
