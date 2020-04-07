@@ -1,3 +1,5 @@
 {:deps
  {notalwaysgray/fm {:git/url "https://github.com/notalwaysgray/fm"
-                    :sha "c06e9152a510ab205043f43345e9d5bf6ef5a212"}}}
+                    :sha "c06e9152a510ab205043f43345e9d5bf6ef5a212"}}
+ :aliases
+ {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0-612"}}}}}
