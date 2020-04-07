@@ -14,10 +14,12 @@
 (def __
   "Placeholder to use in curried fns to save argument application for later.
 
-    (defcurry myvec [x y z] [x y z])
-    ((myvec __ 2 __) 1 3)   ; => [1 2 3]
-    (((myvec __ 2 __) 1) 3) ; => [1 2 3]
-    (((myvec __ __ __) 1) 2 3) ; => [1 2 3]"
+  ```clojure
+  (defcurry myvec [x y z] [x y z])
+  ((myvec __ 2 __) 1 3)   ; => [1 2 3]
+  (((myvec __ 2 __) 1) 3) ; => [1 2 3]
+  (((myvec __ __ __) 1) 2 3) ; => [1 2 3]
+  ```"
   lib/placeholder)
 
 (defn curry-n
@@ -26,21 +28,23 @@
   be invoked after `arity` total args are provided. Supports currying variadic
   functions as long as `arity` doesn't include the variadic argument, which
   means we won't curry any arguments past `arity`, but will pass any args beyond
-  `arity` via `clojure.core/apply`.
+  `arity` via [[clojure.core/apply]].
 
-  Using `__` as a placeholder, args can be interleaved
+  Using [[__]] as a placeholder, args can be interleaved
   wherever you wish and curry will continue to provide a callable function until
-  all args are provided. See `lib/combine-curried-args` for more info on the
+  all args are provided. See [[lib/combine-curried-args]] for more info on the
   order args are applied when one or more placeholder values are used.
 
-    (defn adder [x y z] (+ x y z))
-    (def curried-adder (curry #'adder))
-    (curried-adder 1)         ; no invocation
-    (curried-adder 1 2)       ; no invocation
-    (curried-adder 1 2 3)     ; 6
-    ((curried-adder 1 2) 3)   ; 6
-    ((curried-adder 1) 2 3)   ; 6
-    (((curried-adder 1) 2) 3) ; 6"
+  ```clojure
+  (defn adder [x y z] (+ x y z))
+  (def curried-adder (curry #'adder))
+  (curried-adder 1)         ; no invocation
+  (curried-adder 1 2)       ; no invocation
+  (curried-adder 1 2 3)     ; 6
+  ((curried-adder 1 2) 3)   ; 6
+  ((curried-adder 1) 2 3)   ; 6
+  (((curried-adder 1) 2) 3) ; 6
+  ```"
   ^{:arglists '([arity f] [arity received f])}
   ([arity f]
    (curry-n arity [] f))
@@ -55,9 +59,9 @@
            (curry-n arity combined f)))))))
 
 (defn curry
-  "Curries the given `fn` based on the arity count. Currently only takes the
+  "Curries the given `f` based on the arity count. Currently only takes the
   first item in :arglists for the count. Variadic anonymous functions also
-  report an arity of 0, but will work as expected if you use `curry-n` with
+  report an arity of 0, but will work as expected if you use [[curry-n]] with
   the number of positional args (ignoring the variadic arg)."
   ^{:arglists '([f])}
   [f]
@@ -65,8 +69,8 @@
 
 ;; Heavily simplified from https://gist.github.com/sunilnandihalli/745654
 (defmacro defcurry
-  "Simplified `defn` which wraps the body forms in an fn and passes that
-  function to `curry`. Meta support is limited to requiring a `doc` string.
+  "Simplified [[defn]] which wraps the body forms in an fn and passes that
+  function to [[curry]]. Meta support is limited to requiring a `doc` string.
   `:arglists` will automatically be applied to the var meta for improved docs."
   ^{:arglists '([name doc args & body])}
   [name doc args & body]
@@ -84,27 +88,27 @@
        (curry (fn ~name ~args ~@body)))))
 
 (defcurry <
-  "Curried, binary version of `clojure.core/<`."
+  "Curried, binary version of [[clojure.core/<]]."
   [x y]
   (clojure.core/< x y))
 
 (defcurry <=
-  "Curried, binary version of `clojure.core/<=`."
+  "Curried, binary version of [[clojure.core/<=]]."
   [x y]
   (clojure.core/<= x y))
 
 (defcurry >
-  "Curried, binary version of `clojure.core/>`."
+  "Curried, binary version of [[clojure.core/>]]."
   [x y]
   (clojure.core/> x y))
 
 (defcurry >=
-  "Curried, binary version of `clojure.core/>=`."
+  "Curried, binary version of [[clojure.core/>=]]."
   [x y]
   (clojure.core/>= x y))
 
 (defcurry add
-  "Add two numbers together. Curried, binary version of `clojure.core/+`."
+  "Add two numbers together. Curried, binary version of [[clojure.core/+]]."
   [x y]
   (clojure.core/+ x y))
 
@@ -121,12 +125,12 @@
   (some (fn [pred] (pred data)) preds))
 
 (defcurry apply
-  "Data-last, curried `clojure.core/apply`."
+  "Data-last, curried [[clojure.core/apply]]."
   [f data]
   (clojure.core/apply f data))
 
 (defn- -apply-spec-mapper
-  "Mapping function for iterative use with `apply-spec`'s map."
+  "Mapping function for iterative use with [[apply-spec]]'s map."
   ^{:private true
     :arglists '([args [key setter]])}
   [args [key setter]]
@@ -150,42 +154,41 @@
       (into {})))))
 
 (defcurry assoc
-  "Data-last, curried `clojure.core/assoc`. Only supports one key-value pair.
-  See `assoc&` for variadic cross-over support.
-  to `f` should be partially applied."
+  "Data-last, curried [[clojure.core/assoc]]. Only supports one key-value pair.
+  See [[assoc&]] for variadic cross-over support."
   [key value data]
   (clojure.core/assoc data key value))
 
 (defcurry assoc&
-  "Data-last, curried `clojure.core/assoc` supporting a form of variadic args
+  "Data-last, curried [[clojure.core/assoc]] supporting a form of variadic args
   by accepting a seq of key-value pairs as the first argument to be applied as
-  rest args to `cojure.core/assoc`."
+  rest args to [[cojure.core/assoc]]."
   [kvs data]
   (clojure.core/apply clojure.core/assoc data kvs))
 
 (defcurry assoc-in
-  "Data-last, curried `clojure.core/assoc-in`. Any additional args to be passed
-  to `f` should be partially applied."
+  "Data-last, curried [[clojure.core/assoc-in]]. Any additional args to be
+  passed to `f` should be partially applied."
   [keys value data]
   (clojure.core/assoc-in data keys value))
 
 (defcurry assoc-in&
-  "Data-last, curried `clojure.core/assoc-in` supporting a form of variadic args
-  by accepting a seq of key-value pairs as the first argument to be applied as
-  rest args to `cojure.core/assoc-in`."
+  "Data-last, curried [[clojure.core/assoc-in]] supporting a form of variadic
+  args by accepting a seq of key-value pairs as the first argument to be applied
+  as rest args to [[cojure.core/assoc-in]]."
   [kvs data]
   (clojure.core/apply clojure.core/assoc-in data kvs))
 
 (defcurry both?
-  "Data-last, curried `clojure.core/and`. `left` and `right` are unary functions
-  accepting the final data argument."
+  "Data-last, curried [[clojure.core/and]]. `left` and `right` are unary
+  functions accepting the final data argument."
   [left right data]
   (and
    (some? (left data))
    (some? (right data))))
 
 (defcurry default-to
-  "Returns the given data if it isn't `nil?`, otherwise returns the default.
+  "Returns the given data if it isn't [[nil?]], otherwise returns the default.
   Supports currying."
   [default data]
   (if (some? data)
@@ -193,7 +196,7 @@
     default))
 
 (defcurry divide
-  "Divide two numbers together. Curried, binary version of `clojure.core//`."
+  "Divide two numbers together. Curried, binary version of [[clojure.core//]]."
   [numerator denominator]
   (/ numerator denominator))
 
@@ -205,8 +208,8 @@
     (clojure.core/apply f y x args)))
 
 (defcurry either?
-  "Data-last, curried `clojure.core/or`. `left` and `right` are unary functions
-  accepting the final data argument."
+  "Data-last, curried [[clojure.core/or]]. `left` and `right` are unary
+  functions accepting the final data argument."
   [left right data]
   (or
    (some? (left data))
@@ -214,7 +217,7 @@
 
 (defn- -evolve-reducer
   "Reduce data against a specification of functions to apply to the given keys.
-  Utilized by `evolve`."
+  Utilized by [[evolve]]."
   ^{:private true
     :arglists '([{spec :spec data :data} [key updater]])}
   [{:keys [spec data] :as acc} [key updater]]
@@ -227,7 +230,7 @@
 (defcurry evolve
   "Evolve map values based on `spec` mapping where map values in `spec` are
   functions that will receive the current value for that key in `data`, the
-  result the function will be updated at that key using `update-in`. Keys
+  result the function will be updated at that key using [[update-in]]. Keys
   present in `spec` that are not present in `data` will be ignored. Supports
   nested updates of map values."
   [spec data]
@@ -241,8 +244,10 @@
   [base exp]
   (Math/pow base exp))
 
-(def f
-  "False thunk."
+(def
+  ^{:arglists '([])}
+  f
+  "Thunk that always returns false."
   (constantly false))
 
 (defn from-pairs
@@ -252,20 +257,21 @@
   (into {} pairs))
 
 (defcurry if-else
-  "Data-last, curried `clojure.core/if`. `test`, `then` and `else`args are all
-  unary functions accepting the final `data` arg."
+  "Data-last, curried [[clojure.core/if]]. `test`, `then` and `else` args are
+  all unary functions accepting the final `data` arg."
   [test then else data]
   (if (test data)
     (then data)
     (else data)))
 
 (defcurry mod
-  "Curried `clojure.core/mod`."
+  "Curried [[clojure.core/mod]]."
   [num div]
   (clojure.core/mod num div))
 
 (defcurry multiply
-  "Multiply two numbers together. Curried, binary version of `clojure.core/*`."
+  "Multiply two numbers together. Curried, binary version of
+  [[clojure.core/*]]."
   [x y]
   (* x y))
 
@@ -275,13 +281,14 @@
   (every? (complement pred) data))
 
 (defcurry path
-  "Data-last, curried `clojure.core/get-in` without default (see `path-or`)."
+  "Data-last, curried [[clojure.core/get-in]] without default.
+  See [[path-or]]."
   [keys data]
   (get-in data keys))
 
 (defcurry path=
-  "Data-last, curried `=` comparison of the value at path in the given map.
-  See `path` and `clojure.core/=`."
+  "Data-last, curried [[=]] comparison of the value at path in the given map.
+  See [[path]] and [[clojure.core/=]]."
   [keys x data]
   (->>
    data
@@ -289,43 +296,44 @@
    (= x)))
 
 (defcurry path-or
-  "Data-last, curried `clojure.core/get-in` with default arg."
+  "Data-last, curried [[clojure.core/get-in]] with default arg."
   [default keys data]
   (get-in data keys default))
 
 (defcurry path-satisfies?
-  "Retrieves the value using `path` and runs it against the given predicate."
+  "Retrieves the value using [[path]] and runs it against the given predicate."
   [pred keys data]
   (->> data (path keys) (pred)))
 
 (defcurry paths
-  "Fetches values from multiple paths through the given map. See `path`"
+  "Fetches values from multiple paths through the given map. See [[path]]."
   [keys-keys data]
   (map (fn [keys] (path keys data)) keys-keys))
 
 (defcurry pick
-  "Data-last, curried `clojure.core/select-keys`."
+  "Data-last, curried [[clojure.core/select-keys]]."
   [keys data]
   (select-keys data keys))
 
 (defcurry pluck
-  "Get the named prop value from each given map. See `prop`."
+  "Get the named prop value from each given map. See [[prop]]."
   [key maps]
   (map (prop key) maps))
 
 (defcurry project
-  "`pick`s `keys` from each map in `maps`. Analogous to a SQL select statement."
+  "[[pick]] `keys` from each map in `maps`. Analogous to a SQL select
+  statement."
   [keys maps]
   (map (pick keys) maps))
 
 (defcurry prop
-  "Data-last, curried `clojure.core/get` without default (see `prop-or`)."
+  "Data-last, curried [[clojure.core/get]] without default. See [[prop-or]]."
   [key data]
   (get data key))
 
 (defcurry prop=
-  "Data-last, curried `=` comparison of the prop in the given map.
-  See `prop` and `clojure.core/=`."
+  "Data-last, curried [[=]] comparison of the prop in the given map.
+  See [[prop]] and [[clojure.core/=]]."
   [key x data]
   (->>
    data
@@ -333,12 +341,12 @@
    (= x)))
 
 (defcurry prop-or
-  "Data-last, curried `clojure.core/get` with default arg."
+  "Data-last, curried [[clojure.core/get]] with default arg."
   [default key data]
   (get data key default))
 
 (defcurry prop-satisfies?
-  "Retrieves the value using `prop` and runs it against the given predicate."
+  "Retrieves the value using [[prop]] and runs it against the given predicate."
   [pred key data]
   (->> data (prop key) (pred)))
 
@@ -348,12 +356,15 @@
   (->> data (pick keys) (vals)))
 
 (defcurry subtract
-  "Subtract two numbers together. Curried, binary version of `clojure.core/-`."
+  "Subtract two numbers together. Curried, binary version of
+  [[clojure.core/-]]."
   [x y]
   (- x y))
 
-(def t
-  "True thunk."
+(def
+  ^{:arglists '([])}
+  t
+  "Thunk that always returns true."
   (constantly true))
 
 (defcurry tap
@@ -370,9 +381,9 @@
   (map identity data))
 
 (defcurry try-catch
-  "Data-last, curried try/catch. `tryer` will received `data`, and if it does
-  not throw will return its result. If it does throw, `catcher` will be invoked
-  with the exception and the given `data` argument."
+  "Data-last, curried [[try]] + [[catch]]. `tryer` will received `data`, and if
+  it does not throw will return its result. If it does throw, `catcher` will be
+  invoked with the exception and the given `data` argument."
   [tryer catcher data]
   (try
     (tryer data)
@@ -380,20 +391,21 @@
       (catcher exception data))))
 
 (defcurry update
-  "Data-last, curried `clojure.core/update`. Any additional args to be passed
+  "Data-last, curried [[clojure.core/update]]. Any additional args to be passed
   to `f` should be partially applied."
   [key f data]
   (clojure.core/update data key f))
 
 (defcurry update-in
-  "Data-last, curried `clojure.core/update-in`. Any additional args to be passed
-  to `f` should be partially applied."
+  "Data-last, curried [[clojure.core/update-in]]. Any additional args to be
+  passed to `f` should be partially applied."
   [keys f data]
   (clojure.core/update-in data keys f))
 
 (defcurry when
-  "Data-last, curried `clojure.core/when`. `test` and `then` args are all unary
-  functions accepting the final `data` arg. Differs from core `when` by treating
-  the else clause as identity for the given `data`."
+  "Data-last, curried [[clojure.core/when]]. `test` and `then` args are all
+  unary functions accepting the final `data` arg. Differs from
+  [[clojure.core/when]] by treating the else clause as identity for the given
+  `data` instead of returning `nil`."
   [test then data]
   (if-else test then identity data))
