@@ -1,5 +1,6 @@
 # (= 'clamda (+ 'clojure 'ramda))
 
+[![cljdoc badge](https://cljdoc.org/badge/localshred/clamda)](https://cljdoc.org/d/localshred/clamda/CURRENT)
 [![CircleCI](https://circleci.com/gh/localshred/clamda/tree/master.svg?style=svg)](https://circleci.com/gh/localshred/clamda/tree/master)
 
 `clamda` is `clojure.core` on Ramda steroids.

@@ -4,15 +4,15 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>localshred.clamda</groupId>
+  <groupId>localshred</groupId>
   <artifactId>clamda</artifactId>
   <version>0.1.1</version>
   <name>clamda</name>
   <description>(= 'clamda (+ 'clojure 'ramda))</description>
   <url>https://github.com/localshred/clamda</url>
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
+    <sourceDirectory>src/localshred/clamda</sourceDirectory>
+    <testSourceDirectory>test/localshred/clamda</testSourceDirectory>
     <scriptSourceDirectory>bin</scriptSourceDirectory>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
