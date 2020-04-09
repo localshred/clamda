@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script changes the src/test directory structure to maven (or back again)
+# since I couldn't work out how to get clojars+cljdoc to work using the
+# tools.deps dir structure. Still want to keep tools.deps structure for sanity.
+
 if [[ -d "src/main" ]]; then
   echo "Purifying..."
   mvn clean
