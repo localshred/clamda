@@ -1,5 +1,7 @@
 # (= 'clamda (+ 'clojure 'ramda))
 
+[![CircleCI](https://circleci.com/gh/localshred/clamda/tree/master.svg?style=svg)](https://circleci.com/gh/localshred/clamda/tree/master)
+
 `clamda` is `clojure.core` on Ramda steroids.
 
 Clojure is an utterly brilliant programming language that has fundamentally changed the way I think about writing software.
