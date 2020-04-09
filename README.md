@@ -1,6 +1,6 @@
-# (= 'clamda (+ 'clojure 'ramda)) 
+# (= 'clamda (+ 'clojure 'ramda))
 
-`clamda` is `clojure.core` on ramda steroids.
+`clamda` is `clojure.core` on Ramda steroids.
 
 Clojure is an utterly brilliant programming language that has fundamentally changed the way I think about writing software.
 
@@ -40,6 +40,6 @@ You'll also notice that I haven't included everything from `ramda`, at least not
 in `ramda` that won't need translation simply because Clojure already supports (or negates the need for) some of them.
 
 And before you get all mad about Rich being "Right About Everything", I don't really care. Rich is brilliant and made an amazing
-language, but I like curried/data-last fns more than I like variadic fns and macro thread rewriting of argument passing. 
+language, but I like curried/data-last fns more than I like variadic fns and macro thread rewriting of argument passing.
 Both approaches have a lot of value and I plan on continuin to write variadic functions (sometimes with `curry-n` to really
 turn up the juice). I know, salty. How do you know you won't like it until you try it though...
