@@ -1,8 +1,0 @@
-#kaocha/v1
-{:tests [{:id           :unit
-          :source-paths ["src/main/clojure"]
-          :test-paths   ["src/test/clojure"]
-          :ns-patterns  ["-test$"]}]}
-;; :reporter kaocha.report.progress/report
-;; :plugins [:kaocha.plugin/profiling :kaocha.plugin/notifier]
-
