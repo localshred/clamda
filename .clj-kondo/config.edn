@@ -1,1 +1,5 @@
-{:lint-as {localshred.clamda.core/defcurry clojure.core/defn}}
+{:linters {:invalid-arity                {:skip-args [localshred.clamda.macro/defcurry]}
+           :missing-docstring            {:level :warning}
+           :unsorted-required-namespaces {:level :warning}}
+ :lint-as {localshred.clamda.macro/defcurry clojure.core/defn
+           localshred.clamda.macro/defcopy  clojure.core/def}}

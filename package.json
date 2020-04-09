@@ -1,0 +1,12 @@
+{
+  "name": "clamda",
+  "version": "0.0.1",
+  "description": "clojurescript + ramda",
+  "main": "target/clamda.js",
+  "repository": "git@github.com:localshred/clamda.git",
+  "author": "BJ Neilsen <bj.neilsen@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "source-map-support": "^0.5.16"
+  }
+}

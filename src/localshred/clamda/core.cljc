@@ -5,11 +5,13 @@
   Most of clojure's core functions operate data-last, this library covers for
   the sad remainder."
   (:refer-clojure
-   :exclude [< > <= >= apply assoc assoc-in mod update update-in when])
+   :exclude [< > <= >= apply assoc assoc-in divide mod update update-in when])
   (:require
-   [localshred.clamda.lib :as lib]))
+   [localshred.clamda.lib :as lib]
+   #?@(:clj [[localshred.clamda.macro :refer [defcurry defcopy]]]
+       :cljs [[localshred.clamda.macro :refer-macros [defcurry defcopy]]])))
 
-(declare __ apply-spec evolve prop update-in to-pairs)
+(declare apply-spec evolve prop update-in to-pairs)
 
 (def __
   "Placeholder to use in curried fns to save argument application for later.
@@ -22,70 +24,9 @@
   ```"
   lib/placeholder)
 
-(defn curry-n
-  "Curry up to `arity` arguments, afterwards invoking `f` with any other
-  available args. Allows passing one or more args on any call. `f` will only
-  be invoked after `arity` total args are provided. Supports currying variadic
-  functions as long as `arity` doesn't include the variadic argument, which
-  means we won't curry any arguments past `arity`, but will pass any args beyond
-  `arity` via [[clojure.core/apply]].
-
-  Using [[__]] as a placeholder, args can be interleaved
-  wherever you wish and curry will continue to provide a callable function until
-  all args are provided. See [[lib/combine-curried-args]] for more info on the
-  order args are applied when one or more placeholder values are used.
-
-  ```clojure
-  (defn adder [x y z] (+ x y z))
-  (def curried-adder (curry #'adder))
-  (curried-adder 1)         ; no invocation
-  (curried-adder 1 2)       ; no invocation
-  (curried-adder 1 2 3)     ; 6
-  ((curried-adder 1 2) 3)   ; 6
-  ((curried-adder 1) 2 3)   ; 6
-  (((curried-adder 1) 2) 3) ; 6
-  ```"
-  ^{:arglists '([arity f] [arity received f])}
-  ([arity f]
-   (curry-n arity [] f))
-  ([arity received f]
-   (if (= arity (lib/count-args received))
-     (clojure.core/apply f received)
-     (fn [& args]
-       (let [combined  (lib/combine-curried-args received args)
-             remaining (- arity (lib/count-args combined))]
-         (if (clojure.core/>= 0 remaining)
-           (clojure.core/apply f combined)
-           (curry-n arity combined f)))))))
-
-(defn curry
-  "Curries the given `f` based on the arity count. Currently only takes the
-  first item in :arglists for the count. Variadic anonymous functions also
-  report an arity of 0, but will work as expected if you use [[curry-n]] with
-  the number of positional args (ignoring the variadic arg)."
-  ^{:arglists '([f])}
-  [f]
-  (curry-n (lib/count-arity f) f))
-
-;; Heavily simplified from https://gist.github.com/sunilnandihalli/745654
-(defmacro defcurry
-  "Simplified [[defn]] which wraps the body forms in an fn and passes that
-  function to [[curry]]. Meta support is limited to requiring a `doc` string.
-  `:arglists` will automatically be applied to the var meta for improved docs."
-  ^{:arglists '([name doc args & body])}
-  [name doc args & body]
-  {:pre [(not-any? #{'&} args)]}
-  (if (empty? args)
-    `(defn
-       ~(with-meta name
-          {:doc      doc
-           :arglists '([])})
-       ~args
-       ~@body)
-    `(def
-       ~(with-meta name
-          (macroexpand `{:doc ~doc :arglists '~(list args)}))
-       (curry (fn ~name ~args ~@body)))))
+;; Re-export these vars as if they were defined in the core.
+(defcopy curry lib/curry [:doc :arglists])
+(defcopy curry-n lib/curry-n [:doc :arglists])
 
 (defcurry <
   "Curried, binary version of [[clojure.core/<]]."
