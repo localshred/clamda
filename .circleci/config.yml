@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/clamda
+    docker:
+      - image: circleci/clojure:1.10.1
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - restore_cache:
+          key: localshred-clamda-{{ checksum "deps.edn" }}
+      - run: clj -Spath # fetch deps and cache them
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: localshred-clamda-{{ checksum "deps.edn" }}
+      - run: ./bin/test --reporter documentation
