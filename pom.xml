@@ -3,17 +3,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>localshred</groupId>
   <artifactId>clamda</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.0</version>
   <name>clamda</name>
   <description>(= 'clamda (+ 'clojure 'ramda))</description>
   <url>https://github.com/localshred/clamda</url>
   <build>
-    <sourceDirectory>src/localshred/clamda</sourceDirectory>
-    <testSourceDirectory>test/localshred/clamda</testSourceDirectory>
     <scriptSourceDirectory>bin</scriptSourceDirectory>
+    <plugins>
+      <!-- clojure lifecycle -->
+      <!-- https://github.com/jclosure/my-app -->
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <version>1.8.4</version>
+        <configuration>
+          <mainClass>localshred.clamda.core</mainClass>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile-clojure</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-clojure</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
@@ -22,10 +47,6 @@
           <version>3.1.0</version>
         </plugin>
         <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
-        <plugin>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.2</version>
-        </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.0</version>

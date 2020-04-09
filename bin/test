@@ -1,2 +1,4 @@
 #!/usr/bin/env sh
-clojure -A:test -m kaocha.runner "$@"
+cp="$(clojure -A:test -Spath):src/main/clojure:src/test/clojure"
+echo $cp
+clojure -Scp $cp -A:test -m kaocha.runner "$@"
