@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>localshred</groupId>
+  <artifactId>clamda</artifactId>
+  <version>0.1.0</version>
+  <name>clamda</name>
+  <description>(= 'clamda (+ 'clojure 'ramda))</description>
+  <url>https://github.com/localshred/clamda</url>
+  <build>
+    <plugins>
+      <!-- clojure lifecycle -->
+      <!-- https://github.com/jclosure/my-app -->
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <version>1.8.4</version>
+        <executions>
+          <execution>
+            <id>compile-clojure</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-clojure</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <version>1.10.1</version>
+    </dependency>
+    <dependency>
+      <groupId>lambdaisland</groupId>
+      <artifactId>kaocha</artifactId>
+      <version>1.0-612</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <developers>
+    <developer>
+      <id>bj</id>
+      <name>BJ Neilsen</name>
+      <email>bj.neilsen@gmail.com</email>
+      <url>https://localshred.github.io</url>
+      <properties>
+        <picUrl>https://gravatar.com/avatar/c8ef74aab2e973ba0f7da5557e0ba9a9</picUrl>
+      </properties>
+    </developer>
+  </developers>
+  <distributionManagement>
+    <repository>
+      <id>clojars</id>
+      <name>Clojars repository</name>
+      <url>https://clojars.org/repo</url>
+    </repository>
+  </distributionManagement>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+  <repositories>
+    <repository>
+      <id>clojars</id>
+      <url>https://repo.clojars.org/</url>
+    </repository>
+  </repositories>
+  <scm>
+    <connection>scm:git:https://github.com/localshred/clamda</connection>
+    <tag>master</tag>
+    <url>https://github.com/localshred/clamda</url>
+  </scm>
+</project>

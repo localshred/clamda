@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# This script changes the src/test directory structure to maven (or back again)
+# since I couldn't work out how to get clojars+cljdoc to work using the
+# tools.deps dir structure. Still want to keep tools.deps structure for sanity.
+
+if [[ -d "src/main" ]]; then
+  echo "Purifying..."
+  mvn clean
+
+  mkdir -p {src,test}/localshred/clamda
+  cp -R src/main/clojure/localshred/clamda/* src/localshred/clamda/
+  cp -R src/test/clojure/localshred/clamda/* test/localshred/clamda/
+  rm -rf src/main src/test
+  ./bin/test
+  echo "You have been cleansed of sin"
+else
+  echo "Becoming unclean, pray for me..."
+  mkdir -p src/{main,test}/clojure/localshred
+  mv src/localshred/clamda src/main/clojure/localshred/
+  mv test/localshred/clamda src/test/clojure/localshred/
+
+  mvn clean
+  mvn package
+  jar -tf target/*.jar
+  mvn clojure:test
+  echo "You are now unclean"
+fi
+
+tree -I node_modules
