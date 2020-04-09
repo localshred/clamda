@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           key: localshred-clamda-{{ checksum "deps.edn" }}
-      - run: clj -Spath # fetch deps and cache them
+      - run: clojure -Spath # fetch deps and cache them
       - save_cache:
           paths:
             - ~/.m2
