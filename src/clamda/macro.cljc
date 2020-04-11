@@ -1,6 +1,6 @@
-(ns localshred.clamda.macro
+(ns clamda.macro
   (:require
-   [localshred.clamda.lib :as lib]))
+   [clamda.lib :as lib]))
 
 ;; Heavily simplified from https://gist.github.com/sunilnandihalli/745654
 (defmacro defcurry

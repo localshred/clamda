@@ -1,4 +1,4 @@
 {:source-paths ["src"]
  :builds       {:browser {:target     :browser
                           :output-dir "target"
-                          :modules    {:main {:entries [localshred.clamda.core]}}}}}
+                          :modules    {:main {:entries [clamda.core]}}}}}

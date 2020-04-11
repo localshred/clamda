@@ -1,17 +1,19 @@
-(ns localshred.clamda.lib)
+(ns clamda.lib)
 
 (defn count-arity
   "Attempts to count the arity of the given function. Counts the first :arglists
   vector if present, otherwise reflects on the given fn using the Java API.
   Variadic functions will return 0.
 
-    (count-arity #'inc) ; 1
-    (count-arity #'map) ; 1 - map's first :arglists entry has one arg
+  ```clojure
+  (count-arity #'inc) ; 1
+  (count-arity #'map) ; 1 - map's first :arglists entry has one arg
 
-    (defn adder [x y z] (+ x y z))
-    (count-arity #'adder)                          ; 3
-    (count-arity (fn [x y z] (+ x y z)))           ; 3
-    (count-arity (fn [x & more] (apply + x more))) ; 0 "
+  (defn adder [x y z] (+ x y z))
+  (count-arity #'adder)                          ; 3
+  (count-arity (fn [x y z] (+ x y z)))           ; 3
+  (count-arity (fn [x & more] (apply + x more))) ; 0
+  ```"
   [f]
   (if-let [metadata (-> f meta :arglists)]
     (-> metadata first count)
@@ -32,7 +34,7 @@
   by building up the combined set from `received`, and replacing with top of
   `args` each time a placeholder value is encountered in `received`.
   Placeholders are left in place if there are no more arguments to replace them
-  with for downstream replacement. See `combine-curried-args`."
+  with for downstream replacement. See [[combine-curried-args]]."
   ([] [])
   ([{:keys [args received]} received-value]
    (if (and
@@ -48,7 +50,7 @@
   placeholder values. Otherwise, interleaves `args` values in positional order
   for any `received` values that are placeholders, concating remaining `args` on
   the end and returning the whole vector.
-  See `localshred.clamda.core/curry-n`."
+  See [[clamda.core/curry-n]]."
   [received args]
   (let [any-placeholders (seq (filter placeholder? received))]
     (if any-placeholders
