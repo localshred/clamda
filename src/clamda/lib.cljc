@@ -1,4 +1,4 @@
-(ns localshred.clamda.lib)
+(ns clamda.lib)
 
 (defn count-arity
   "Attempts to count the arity of the given function. Counts the first :arglists
@@ -48,7 +48,7 @@
   placeholder values. Otherwise, interleaves `args` values in positional order
   for any `received` values that are placeholders, concating remaining `args` on
   the end and returning the whole vector.
-  See `localshred.clamda.core/curry-n`."
+  See `clamda.core/curry-n`."
   [received args]
   (let [any-placeholders (seq (filter placeholder? received))]
     (if any-placeholders

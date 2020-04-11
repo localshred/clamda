@@ -1,8 +1,8 @@
-(ns localshred.clamda.core-test
+(ns clamda.core-test
   (:require
    [clojure.test :as t]
    [clojure.string :as string]
-   [localshred.clamda.core :as core]))
+   [clamda.core :as core]))
 
 (defn mul
   [x y] (* x y))

@@ -1,4 +1,4 @@
-(ns localshred.clamda.core
+(ns clamda.core
   "clamda is a ramda-inspired API which adds more functional primitives for
   clojure programs. The majority of clamda fns are curried and expect data last
   to encourage data-last threading, which we consider superior to data-first.
@@ -7,9 +7,9 @@
   (:refer-clojure
    :exclude [< > <= >= apply assoc assoc-in divide mod update update-in when])
   (:require
-   [localshred.clamda.lib :as lib]
-   #?@(:clj [[localshred.clamda.macro :refer [defcurry defcopy]]]
-       :cljs [[localshred.clamda.macro :refer-macros [defcurry defcopy]]])))
+   [clamda.lib :as lib]
+   #?@(:clj [[clamda.macro :refer [defcurry defcopy]]]
+       :cljs [[clamda.macro :refer-macros [defcurry defcopy]]])))
 
 (declare apply-spec evolve prop update-in to-pairs)
 
