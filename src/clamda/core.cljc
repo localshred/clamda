@@ -328,7 +328,8 @@
   [tryer catcher data]
   (try
     (tryer data)
-    (catch :default exception
+    (catch #?(:clj  Exception
+              :cljs :default) exception
       (catcher exception data))))
 
 (defcurry update
