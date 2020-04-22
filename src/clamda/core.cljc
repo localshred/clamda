@@ -8,7 +8,7 @@
    :exclude [< > <= >= apply assoc assoc-in divide mod update update-in when])
   (:require
    [clamda.lib :as lib]
-   #?@(:clj [[clamda.macro :refer [defcurry defcopy]]]
+   #?@(:clj  [[clamda.macro :refer [defcurry defcopy]]]
        :cljs [[clamda.macro :refer-macros [defcurry defcopy]]])))
 
 (declare apply-spec evolve prop update-in to-pairs)
@@ -328,7 +328,7 @@
   [tryer catcher data]
   (try
     (tryer data)
-    (catch Exception exception
+    (catch :default exception
       (catcher exception data))))
 
 (defcurry update
