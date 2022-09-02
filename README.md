@@ -1,5 +1,7 @@
 # (= 'clamda (+ 'clojure 'ramda))
 
+
+[![Clojars Project](https://img.shields.io/clojars/v/localshred.clamda/clamda.svg)](https://clojars.org/localshred.clamda/clamda)
 [![cljdoc badge](https://cljdoc.org/badge/localshred/clamda)](https://cljdoc.org/d/localshred/clamda/CURRENT)
 [![CircleCI](https://circleci.com/gh/localshred/clamda/tree/master.svg?style=svg)](https://circleci.com/gh/localshred/clamda/tree/master)
 
